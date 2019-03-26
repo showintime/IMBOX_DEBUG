@@ -10,7 +10,7 @@
 
 double IMx[MAX], IMy[MAX];
 
-#define Mnum 2
+
 
 
 

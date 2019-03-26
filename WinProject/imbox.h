@@ -28,7 +28,7 @@ HDC ghDc = NULL;
 
 #define MAX 10000
 
-#define AXISNUM 9
+#define AXISNUM 5
 
 #define SBXL 0.1
 #define SBXR 0.1
@@ -42,10 +42,19 @@ typedef struct tagIMPOINT
 	double y;
 }IMPOINT;
 
+typedef struct tagNUME
+{
+	double ea;
+	int en;
+}NUME;
+
+
+
 void imbox_paint2D(double IMx[], double IMy[]);
 void imboxmain();
 void imbox_init(HWND hWnd);
 void imbox_clean();
+void countfn(double x,NUME *nume);
 LRESULT CALLBACK WndProc(
 	HWND hWnd,
 	UINT msg,
@@ -54,7 +63,44 @@ LRESULT CALLBACK WndProc(
 );
 
 
+void countfn(double x,NUME *nume)
+{
 
+	
+	int flag = 1;
+	if (x < 0) {
+		flag = -1;
+	}
+
+	double fx = fabs(x);
+	int b = 0;
+	if ((fx < 1) &&(fx > 0)) {
+		b = 0;
+		while (fx < 1) {
+			fx *= 10;
+			b++;
+		}
+		nume->ea = flag*fx;
+		nume->en = -b;
+	}
+	else if(fx>=10){
+		b = 0;
+		while (fx >= 10) {
+			fx /= 10;
+			b++;
+		}
+		nume->ea = flag * fx;
+		nume->en = b;
+	}
+	else {
+		nume->ea = fx;
+		nume->en = 0;
+	}
+
+
+
+
+}
 
 
 
@@ -64,7 +110,7 @@ void imbox_paint2D(double IMx[], double IMy[])
 	double ymax = IMy[0], ymin = IMy[0];
 	double xaxislen = 0, yaxislen = 0;
 	double xaxis[AXISNUM + 1], yaxis[AXISNUM + 1];
-	wchar_t xaxislabel[AXISNUM+1],yaxislabel[AXISNUM+1];
+	wchar_t xaxislabel[10],yaxislabel[10];
 	for (int i = 0; i < MAX; i++)
 	{
 		if (IMx[i] > xmax) {
@@ -123,22 +169,34 @@ void imbox_paint2D(double IMx[], double IMy[])
 	}
 
 
-	long temxaxis, temyaxis;
+	double temxaxis, temyaxis;
+	NUME numex[AXISNUM+1] = { 0 }, numey[AXISNUM+1] = { 0 };
+
+	SetBkMode(ghDc, TRANSPARENT);
 	for (int i = 0; i < AXISNUM + 1; i++)
 	{
 		xaxis[i] = xmin + xaxislen / AXISNUM * i;
 		yaxis[i] = ymin + yaxislen / AXISNUM * i;
 
-		temxaxis = (long)(WINDOW_WIDTH * SBXL + everypx * (xaxis[i] - xmin));
-		temyaxis = (long)(WINDOW_HEIGHT*SBYT + everypy * (ymax - yaxis[i]));
+		temxaxis = (WINDOW_WIDTH * SBXL + everypx * (xaxis[i] - xmin));
+		temyaxis = (WINDOW_HEIGHT*SBYT + everypy * (ymax - yaxis[i]));
 
-		swprintf(xaxislabel, 3, L"%f", xaxis);
-		swprintf(yaxislabel, 9, L"%f", yaxis);
+		countfn(xaxis[i], &numex[i]);
+		countfn(yaxis[i], &numey[i]);
 
-		TextOut(ghDc, temxaxis, (1 - SBYB)*WINDOW_HEIGHT, xaxislabel, 9);
-		TextOut(ghDc, SBXL*WINDOW_WIDTH - 7 * (AXISNUM + 1), temyaxis, xaxislabel, 9);
+		swprintf(xaxislabel, 10, L"%5.3fE%3d", numex[i].ea, numex[i].en);
+		swprintf(yaxislabel, 10, L"%5.3fE%3d", numey[i].ea, numey[i].en);
+
+
+		TextOut(ghDc, temxaxis, (1 - SBYB)*WINDOW_HEIGHT, xaxislabel, sizeof(xaxislabel)/2);
+		TextOut(ghDc, SBXL*WINDOW_WIDTH - 7 * (AXISNUM + 1), temyaxis, yaxislabel, sizeof(yaxislabel)/2);
 
 	}
+
+
+
+	
+	
 
 
 
